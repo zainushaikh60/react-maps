@@ -1,13 +1,31 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { GoogleMap, Marker, InfoWindow } from 'react-google-maps';
-import axios from 'axios';
+import WeatherContext from '../context/weatherContext';
 
 const Map = () => {
-  const [latLng, setLatLng] = useState({ lat: '', lng: '' });
-  const [location, setLocation] = useState([]);
+  const weatherContext = useContext(WeatherContext);
+
+  const {
+    getMarkerLocationWeather,
+    location,
+    latitude,
+    longitude,
+    clearLatLng,
+  } = weatherContext;
+
   const [weatherCard, setWeatherCard] = useState(false);
 
-  const onSetLatLng = (e) => {
+  const [latLng, setLatLng] = useState({ lat: '', lng: '' });
+
+  const onSetLatLng = () => {
+    setLatLng({
+      lat: parseFloat(latitude),
+      lng: parseFloat(longitude),
+    });
+  };
+
+  const onReset = (e) => {
+    clearLatLng();
     setLatLng({
       lat: (latLng.lat = parseFloat(e.latLng.lat())),
       lng: (latLng.lng = parseFloat(e.latLng.lng())),
@@ -20,27 +38,27 @@ const Map = () => {
 
   const { lat, lng } = latLng;
 
+  const mapRef = useRef();
+
+  const onMapRef = () => {
+    mapRef.current.panTo({
+      lat: !lat ? 25.395969 : lat,
+      lng: !lng ? 68.357773 : lng,
+    });
+  };
+
   useEffect(() => {
-    const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&units=metric&appid=${process.env.REACT_APP_WEATHER_KEY}`;
-
-    const getCurrentWeather = async () => {
-      try {
-        const mapLocation = await axios.get(url);
-        setLocation(mapLocation.data);
-      } catch (err) {
-        console.error(err.message);
-      }
-    };
-
-    getCurrentWeather();
-  }, [lat, lng]);
+    getMarkerLocationWeather(lat, lng);
+    if (latitude !== null && longitude !== null) {
+      onSetLatLng();
+    }
+    if (weatherCard === false) {
+      onMapRef();
+    }
+  }, [lat, lng, latitude, longitude]);
 
   return (
-    <GoogleMap
-      defaultZoom={10}
-      defaultCenter={{ lat: 25.395969, lng: 68.357773 }}
-      onClick={onSetLatLng}
-    >
+    <GoogleMap defaultZoom={10} ref={mapRef} onClick={onReset}>
       <Marker
         position={{
           lat: lat,
