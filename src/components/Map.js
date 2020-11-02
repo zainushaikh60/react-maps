@@ -17,14 +17,14 @@ const Map = () => {
 
   const [latLng, setLatLng] = useState({ lat: '', lng: '' });
 
-  const onSetLatLng = () => {
+  const onEnteredLatLng = () => {
     setLatLng({
       lat: parseFloat(latitude),
       lng: parseFloat(longitude),
     });
   };
 
-  const onReset = (e) => {
+  const onClickLatLng = (e) => {
     clearLatLng();
     setLatLng({
       lat: (latLng.lat = parseFloat(e.latLng.lat())),
@@ -48,17 +48,16 @@ const Map = () => {
   };
 
   useEffect(() => {
-    getMarkerLocationWeather(lat, lng);
-    if (latitude !== null && longitude !== null) {
-      onSetLatLng();
-    }
-    if (weatherCard === false) {
-      onMapRef();
-    }
+    if (lat && lng) getMarkerLocationWeather(lat, lng);
+
+    if (latitude !== null && longitude !== null) onEnteredLatLng();
+
+    if (weatherCard === false) onMapRef();
+    //eslint-disable-next-line
   }, [lat, lng, latitude, longitude]);
 
   return (
-    <GoogleMap defaultZoom={10} ref={mapRef} onClick={onReset}>
+    <GoogleMap defaultZoom={10} ref={mapRef} onClick={onClickLatLng}>
       <Marker
         position={{
           lat: lat,
